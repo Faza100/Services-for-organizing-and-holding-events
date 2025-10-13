@@ -1,23 +1,32 @@
-package com.example.my_progect.dto.location;
+package com.example.my_progect.entity;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-public class LocationUpdateRequestDto {
+@Entity
+@Table(name = "locations")
+public class LocationEntity {
 
-    @Size(min = 2, max = 100, message = "Name location must be between 2 and 100 characters")
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
     private String name;
 
+    @Column(nullable = false)
     private String address;
 
-    @Min(1)
-    @Max(10000)
+    @Column(nullable = false)
     private Integer capacity;
 
     private String description;
 
-    public LocationUpdateRequestDto(
+    public LocationEntity(
             String name,
             String address,
             Integer capacity,
@@ -26,6 +35,18 @@ public class LocationUpdateRequestDto {
         this.address = address;
         this.capacity = capacity;
         this.description = description;
+    }
+
+    public LocationEntity() {
+
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 
     public String getName() {
@@ -59,5 +80,4 @@ public class LocationUpdateRequestDto {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }

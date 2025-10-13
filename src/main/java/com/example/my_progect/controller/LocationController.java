@@ -14,70 +14,78 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.my_progect.converter.LocationConverter;
 import com.example.my_progect.dto.location.LocationCreateRequestDto;
 import com.example.my_progect.dto.location.LocationResponseDto;
+import com.example.my_progect.dto.location.LocationUpdateRequestDto;
+import com.example.my_progect.mapper.LocationMapper;
 import com.example.my_progect.model.Location;
 import com.example.my_progect.service.LocationService;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/locations")
+@RequestMapping("/locations")
+@SecurityRequirement(name = "JWT")
 public class LocationController {
 
-    private final LocationService locationServiсe;
-    private final LocationConverter locationConverter;
+    private final LocationService locationService;
+    private final LocationMapper locationConverter;
     private static final Logger log = LoggerFactory.getLogger(LocationController.class);
 
     public LocationController(
-            LocationService locationServiсe,
-            LocationConverter locationConverter) {
-        this.locationServiсe = locationServiсe;
+            LocationService locationService,
+            LocationMapper locationConverter) {
+        this.locationService = locationService;
         this.locationConverter = locationConverter;
     }
 
     @GetMapping
     public ResponseEntity<List<LocationResponseDto>> getAllLocation() {
-        List<Location> locations = locationServiсe.getAllLocation();
+        List<Location> locations = locationService.getAllLocation();
         List<LocationResponseDto> locationDtos = locations.stream()
                 .map(locationConverter::toDto)
                 .toList();
+        log.info("Location get list successfully: {}", locationDtos);
         return ResponseEntity.ok(locationDtos);
     }
 
     @PostMapping
     public ResponseEntity<LocationResponseDto> createLocation(
             @RequestBody @Valid LocationCreateRequestDto locationCreateRequestDto) {
-        log.info("Location create event request: {}", locationCreateRequestDto);
-        Location locations = locationServiсe.createLocation(
-                locationConverter.toEntity(locationCreateRequestDto));
+        log.info("Location create request: {}", locationCreateRequestDto);
+        Location locations = locationService.createLocation(
+                locationConverter.toModel(locationCreateRequestDto));
         LocationResponseDto response = locationConverter.toDto(locations);
-        log.info("Location create successfully: {}", locationCreateRequestDto);
+        log.info("Location create successfully: {}", response);
         return ResponseEntity.ok(response);
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{locationId}")
     public ResponseEntity<LocationResponseDto> getLocationById(
-            @PathVariable Long id) {
-        Location locations = locationServiсe.getUserById(id);
+            @PathVariable Long locationId) {
+        log.info("Request to get location by id: {}", locationId);
+        Location locations = locationService.getLocationById(locationId);
+        log.info("Location get by id successfully: {}", locationId);
         return ResponseEntity.ok(locationConverter.toDto(locations));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{locationId}")
     public ResponseEntity<Void> deleteLocationById(
-            @PathVariable Long id) {
-        locationServiсe.deleteLocationByid(id);
-        return ResponseEntity.ok().build();
+            @PathVariable Long locationId) {
+        log.info("Request to delete location by id: {}", locationId);
+        locationService.deleteLocationById(locationId);
+        log.info("Location delete by id successfully: {}", locationId);
+        return ResponseEntity.status(204).build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{locationId}")
     public ResponseEntity<LocationResponseDto> updateLocation(
-            @PathVariable Long id,
-            @RequestBody @Valid LocationCreateRequestDto locationUpdateRequestDto) {
-        log.info("Received update location request for id {}: {}", id, locationUpdateRequestDto);
-        Location locations = locationServiсe.updateLocation(id,
-                locationConverter.toEntity(locationUpdateRequestDto));
+            @PathVariable Long locationId,
+            @RequestBody @Valid LocationUpdateRequestDto locationUpdateRequestDto) {
+        log.info("Received update location request for id {}: {}", locationId, locationUpdateRequestDto);
+        Location locations = locationService.updateLocation(locationId,
+                locationConverter.toModel(locationUpdateRequestDto));
         LocationResponseDto response = locationConverter.toDto(locations);
         log.info("Location update successfully: {}", response);
         return ResponseEntity.ok(response);
