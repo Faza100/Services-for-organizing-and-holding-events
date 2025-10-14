@@ -1,36 +1,31 @@
-package com.example.my_progect.dto.location;
+package com.example.my_project.dto.location;
 
-public class LocationResponseDto {
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Size;
 
-    private Long id;
+public class LocationUpdateRequestDto {
 
+    @Size(min = 2, max = 100, message = "Name location must be between 2 and 100 characters")
     private String name;
 
     private String address;
 
+    @Min(1)
+    @Max(10000)
     private Integer capacity;
 
     private String description;
 
-    public LocationResponseDto(
-            Long id,
+    public LocationUpdateRequestDto(
             String name,
             String address,
             Integer capacity,
             String description) {
-        this.id = id;
         this.name = name;
         this.address = address;
         this.capacity = capacity;
         this.description = description;
-    }
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
     }
 
     public String getName() {

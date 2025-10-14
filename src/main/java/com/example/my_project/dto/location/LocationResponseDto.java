@@ -1,34 +1,24 @@
-package com.example.my_progect.dto.location;
+package com.example.my_project.dto.location;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
-
-public class LocationCreateRequestDto {
+public class LocationResponseDto {
 
     private Long id;
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 80, message = "Name location must be between 2 and 100 characters")
     private String name;
 
-    @NotBlank(message = "Address is required")
     private String address;
 
-    @NotNull(message = "Capacity is required")
-    @Min(1)
-    @Max(10000)
     private Integer capacity;
 
     private String description;
 
-    public LocationCreateRequestDto(
+    public LocationResponseDto(
+            Long id,
             String name,
             String address,
             Integer capacity,
             String description) {
+        this.id = id;
         this.name = name;
         this.address = address;
         this.capacity = capacity;
@@ -74,5 +64,4 @@ public class LocationCreateRequestDto {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }
