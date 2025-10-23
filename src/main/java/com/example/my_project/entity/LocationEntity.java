@@ -1,30 +1,32 @@
-package com.example.my_progect.dto.location;
+package com.example.my_project.entity;
 
-import jakarta.validation.constraints.Max;
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 
-public class LocationCreateRequestDto {
+@Entity
+@Table(name = "locations")
+public class LocationEntity {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank(message = "Name is required")
-    @Size(min = 2, max = 80, message = "Name location must be between 2 and 100 characters")
+    @Column(nullable = false)
     private String name;
 
-    @NotBlank(message = "Address is required")
+    @Column(nullable = false)
     private String address;
 
-    @NotNull(message = "Capacity is required")
-    @Min(1)
-    @Max(10000)
+    @Column(nullable = false)
     private Integer capacity;
 
     private String description;
 
-    public LocationCreateRequestDto(
+    public LocationEntity(
             String name,
             String address,
             Integer capacity,
@@ -33,6 +35,10 @@ public class LocationCreateRequestDto {
         this.address = address;
         this.capacity = capacity;
         this.description = description;
+    }
+
+    public LocationEntity() {
+
     }
 
     public Long getId() {
@@ -74,5 +80,4 @@ public class LocationCreateRequestDto {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }

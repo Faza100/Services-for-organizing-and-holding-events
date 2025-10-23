@@ -1,6 +1,6 @@
-package com.example.my_progect.dto.location;
+package com.example.my_project.model;
 
-public class LocationResponseDto {
+public class Location {
 
     private Long id;
 
@@ -12,7 +12,18 @@ public class LocationResponseDto {
 
     private String description;
 
-    public LocationResponseDto(
+    public Location(
+            String name,
+            String address,
+            Integer capacity,
+            String description) {
+        this.name = name;
+        this.address = address;
+        this.capacity = capacity;
+        this.description = description;
+    }
+
+    public Location(
             Long id,
             String name,
             String address,
@@ -64,5 +75,4 @@ public class LocationResponseDto {
     public void setDescription(String description) {
         this.description = description;
     }
-
 }
