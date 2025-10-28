@@ -9,7 +9,7 @@ import com.example.my_project.model.Location;
 import com.example.my_project.repository.LocationRepository;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LocationService {
@@ -24,7 +24,7 @@ public class LocationService {
         this.locationMapper = locationMapper;
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<Location> getAllLocation() {
         List<LocationEntity> ListLocationEntity = locationRepository.findAll();
         return ListLocationEntity.stream()
@@ -38,7 +38,7 @@ public class LocationService {
         return locationMapper.toModel(locationEntity);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Location getLocationById(Long LocationId) {
         LocationEntity locationEntity = locationRepository.findById(LocationId)
                 .orElseThrow(() -> new EntityNotFoundException("Location not found with id: " + LocationId));
