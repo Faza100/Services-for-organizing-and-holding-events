@@ -54,11 +54,11 @@ public class JwtTokenService {
                     .setSigningKey(signKey)
                     .build()
                     .parse(jwtToken);
+            return true;
         } catch (Exception e) {
+            log.info("Invalid JWT: {}", e.getMessage());
             return false;
         }
-        return true;
-
     }
 
     public String getLoginFromToken(String jwtToken) {
@@ -77,7 +77,6 @@ public class JwtTokenService {
                 .parseClaimsJws(jwtToken)
                 .getBody()
                 .get("role", String.class);
-        log.info("Extracted role from token: {}", role);
         return role;
     }
 

@@ -63,7 +63,7 @@ public class UserController {
                                 .body(response);
         }
 
-        @PostMapping("/aut")
+        @PostMapping("/auth")
         public ResponseEntity<JwtTokenResponseDto> authenticate(
                         @RequestBody @Valid LoginRequestDto loginRequest) {
                 log.info("Request for aunteficate user: {}", loginRequest.getLogin());

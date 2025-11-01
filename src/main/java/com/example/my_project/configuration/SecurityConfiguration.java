@@ -22,7 +22,7 @@ public class SecurityConfiguration {
 
         private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
-        public final CustomAccessDeniedHandler accessDeniedHandler;
+        private final CustomAccessDeniedHandler accessDeniedHandler;
 
         public SecurityConfiguration(
                         JwtTokenFilterService jwtTokenFilterService,
@@ -47,7 +47,7 @@ public class SecurityConfiguration {
                                 .csrf(AbstractHttpConfigurer::disable)
                                 .sessionManagement(sessionManagement -> sessionManagement
                                                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                                .exceptionHandling(exeptionHandling -> exeptionHandling
+                                .exceptionHandling(exceptionHandling -> exceptionHandling
                                                 .authenticationEntryPoint(authenticationEntryPoint)
                                                 .accessDeniedHandler(accessDeniedHandler))
                                 .authorizeHttpRequests(authorizeHttpRequests -> authorizeHttpRequests
@@ -62,14 +62,14 @@ public class SecurityConfiguration {
                                                                 "/configuration/security",
                                                                 "/openapi.yaml")
                                                 .permitAll()
-                                                .requestMatchers(HttpMethod.POST, "/users/aut").permitAll()
+                                                .requestMatchers(HttpMethod.POST, "/users/auth").permitAll()
                                                 .requestMatchers(HttpMethod.POST, "/users").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/users/{userId}")
                                                 .hasAnyAuthority("ADMIN", "USER")
                                                 .requestMatchers(HttpMethod.POST, "/locations").hasAuthority("ADMIN")
-                                                .requestMatchers(HttpMethod.DELETE, "/locations/{locationsId}")
+                                                .requestMatchers(HttpMethod.DELETE, "/locations/{locationId}")
                                                 .hasAuthority("ADMIN")
-                                                .requestMatchers(HttpMethod.PUT, "/locations/{locationsId}")
+                                                .requestMatchers(HttpMethod.PUT, "/locations/{locationId}")
                                                 .hasAuthority("ADMIN")
                                                 .requestMatchers(HttpMethod.GET, "/locations")
                                                 .hasAnyAuthority("ADMIN", "USER")
