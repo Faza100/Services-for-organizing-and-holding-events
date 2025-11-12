@@ -14,7 +14,6 @@ import jakarta.persistence.EntityNotFoundException;
 public class GlobalExeptionHandler {
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
-
         public ResponseEntity<MessageError> handlerValidationExeption(
                         MethodArgumentNotValidException e) {
                 var message = new MessageError(
@@ -45,6 +44,28 @@ public class GlobalExeptionHandler {
                                 LocalDateTime.now());
                 return ResponseEntity.status(
                                 HttpStatus.NOT_FOUND).body(message);
+        }
+
+        @ExceptionHandler(SecurityException.class)
+        public ResponseEntity<MessageError> handleIllegalArgumentException(
+                        SecurityException e) {
+                var message = new MessageError(
+                                "Security violation",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.FORBIDDEN).body(message);
+        }
+
+        @ExceptionHandler(IllegalStateException.class)
+        public ResponseEntity<MessageError> handleIllegalArgumentException(
+                        IllegalStateException e) {
+                var message = new MessageError(
+                                "Business rule violation",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.BAD_REQUEST).body(message);
         }
 
         @ExceptionHandler(Exception.class)

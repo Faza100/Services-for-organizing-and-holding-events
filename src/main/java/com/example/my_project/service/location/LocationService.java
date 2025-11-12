@@ -1,4 +1,4 @@
-package com.example.my_project.service;
+package com.example.my_project.service.location;
 
 import java.util.List;
 
@@ -46,11 +46,11 @@ public class LocationService {
     }
 
     @Transactional(readOnly = true)
-    public Location getLocationById(Long LocationId) {
-        log.info("Getting location by id: {}", LocationId);
-        LocationEntity locationEntity = locationRepository.findById(LocationId)
-                .orElseThrow(() -> new EntityNotFoundException("Location not found with id: " + LocationId));
-        log.info("Location found with id: {}", LocationId);
+    public Location getLocationById(Long locationId) {
+        log.info("Getting location by id: {}", locationId);
+        LocationEntity locationEntity = locationRepository.findById(locationId)
+                .orElseThrow(() -> new EntityNotFoundException("Location not found with id: " + locationId));
+        log.info("Location found with id: {}", locationId);
         return locationMapper.toModel(locationEntity);
     }
 
