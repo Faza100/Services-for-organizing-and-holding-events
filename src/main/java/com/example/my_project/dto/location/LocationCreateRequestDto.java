@@ -16,7 +16,7 @@ public class LocationCreateRequestDto {
     private String address;
 
     @NotNull(message = "Capacity is required")
-    @Min(1)
+    @Min(2)
     @Max(10000)
     private Integer capacity;
 

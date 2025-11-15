@@ -19,7 +19,7 @@ import com.example.my_project.dto.location.LocationResponseDto;
 import com.example.my_project.dto.location.LocationUpdateRequestDto;
 import com.example.my_project.mapper.LocationMapper;
 import com.example.my_project.model.Location;
-import com.example.my_project.service.LocationService;
+import com.example.my_project.service.location.LocationService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;

@@ -17,8 +17,8 @@ import com.example.my_project.dto.user.UserRequestDto;
 import com.example.my_project.dto.user.UserResponseDto;
 import com.example.my_project.mapper.UserMapper;
 import com.example.my_project.model.User;
-import com.example.my_project.service.AuthenticationService;
-import com.example.my_project.service.UserService;
+import com.example.my_project.service.auth.AuthenticationService;
+import com.example.my_project.service.user.UserService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
