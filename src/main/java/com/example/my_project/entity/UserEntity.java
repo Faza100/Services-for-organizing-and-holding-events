@@ -10,13 +10,9 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
-import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
@@ -41,12 +37,11 @@ public class UserEntity {
     @Column(nullable = false)
     private UserRole role;
 
-    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
     private List<EventEntity> createdEvents = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_event_registrations", joinColumns = @JoinColumn(name = "user_id"), inverseJoinColumns = @JoinColumn(name = "event_id"))
-    private List<EventEntity> registeredEvents = new ArrayList<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<RegistrationEntity> registrations = new ArrayList<>();
 
     public UserEntity(
             String login,
@@ -110,12 +105,12 @@ public class UserEntity {
         this.createdEvents = createdEvents;
     }
 
-    public List<EventEntity> getRegisteredEvents() {
-        return registeredEvents;
+    public List<RegistrationEntity> getRegistrations() {
+        return registrations;
     }
 
-    public void setRegisteredEvents(List<EventEntity> registeredEvents) {
-        this.registeredEvents = registeredEvents;
+    public void setRegistrations(List<RegistrationEntity> registrations) {
+        this.registrations = registrations;
     }
 
 }

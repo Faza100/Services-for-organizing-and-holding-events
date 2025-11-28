@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.example.my_project.enums.EventStatus;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -13,8 +14,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -54,8 +55,8 @@ public class EventEntity {
     @Column(nullable = false)
     private EventStatus status;
 
-    @ManyToMany(mappedBy = "registeredEvents", fetch = FetchType.LAZY)
-    private List<UserEntity> registeredUsers = new ArrayList<>();
+    @OneToMany(mappedBy = "event", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<RegistrationEntity> registrations = new ArrayList<>();
 
     public EventEntity(Integer occupiedPlaces,
             LocalDateTime date,
@@ -163,12 +164,12 @@ public class EventEntity {
         this.status = status;
     }
 
-    public List<UserEntity> getRegisteredUsers() {
-        return registeredUsers;
+    public List<RegistrationEntity> getRegistrations() {
+        return registrations;
     }
 
-    public void setRegisteredUsers(List<UserEntity> registeredUsers) {
-        this.registeredUsers = registeredUsers;
+    public void setRegistrations(List<RegistrationEntity> registrations) {
+        this.registrations = registrations;
     }
 
     public void updateStatus() {

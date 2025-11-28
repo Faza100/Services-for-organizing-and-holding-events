@@ -92,6 +92,9 @@ public class SecurityConfiguration {
                                                 .requestMatchers(HttpMethod.GET,
                                                                 "/events/registrations/my")
                                                 .hasAuthority("USER")
+                                                .requestMatchers(HttpMethod.GET,
+                                                                "/events/search")
+                                                .hasAnyAuthority("ADMIN", "USER")
                                                 .anyRequest().authenticated())
                                 .addFilterBefore(
                                                 jwtTokenFilterService, UsernamePasswordAuthenticationFilter.class)

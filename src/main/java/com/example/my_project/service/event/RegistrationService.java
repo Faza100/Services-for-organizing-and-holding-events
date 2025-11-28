@@ -9,35 +9,38 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.my_project.entity.EventEntity;
+import com.example.my_project.entity.RegistrationEntity;
 import com.example.my_project.entity.UserEntity;
+import com.example.my_project.enums.EventStatus;
 import com.example.my_project.mapper.EventMapper;
 import com.example.my_project.model.Event;
 import com.example.my_project.repository.EventRepository;
+import com.example.my_project.repository.RegistrationRepository;
 import com.example.my_project.repository.UserRepository;
 
 import jakarta.persistence.EntityNotFoundException;
 
 @Service
-public class EventRegistrationService {
+public class RegistrationService {
 
-    private final EventRepository eventRepository;
+    private final RegistrationRepository registrationRepository;
     private final EventMapper eventMapper;
+    private final EventRepository eventRepository;
     private final UserRepository userRepository;
     private final SecurityContextService securityContextService;
-    private final EventBusinessRulesService eventBusinessRulesService;
-    private static final Logger log = LoggerFactory.getLogger(EventRegistrationService.class);
+    private static final Logger log = LoggerFactory.getLogger(RegistrationService.class);
 
-    public EventRegistrationService(
-            EventRepository eventRepository,
+    public RegistrationService(
+            RegistrationRepository registrationRepository,
             EventMapper eventMapper,
+            EventRepository eventRepository,
             UserRepository userRepository,
-            SecurityContextService securityContextService,
-            EventBusinessRulesService eventBusinessRulesService) {
-        this.eventRepository = eventRepository;
+            SecurityContextService securityContextService) {
+        this.registrationRepository = registrationRepository;
         this.eventMapper = eventMapper;
+        this.eventRepository = eventRepository;
         this.userRepository = userRepository;
         this.securityContextService = securityContextService;
-        this.eventBusinessRulesService = eventBusinessRulesService;
     }
 
     @Transactional
@@ -46,7 +49,7 @@ public class EventRegistrationService {
 
         EventEntity event = findByEventId(eventId);
 
-        if (!eventBusinessRulesService.isActiveEvent(event)) {
+        if (!isActiveEvent(event)) {
             throw new IllegalStateException("Event is not available for registration");
         }
 
@@ -56,7 +59,7 @@ public class EventRegistrationService {
             throw new IllegalStateException("The event creator does not need to register");
         }
 
-        if (event.getRegisteredUsers().contains(user)) {
+        if (registrationCheck(user, event)) {
             throw new IllegalStateException("User is already registered for this event");
         }
 
@@ -64,9 +67,13 @@ public class EventRegistrationService {
             throw new IllegalStateException("No available places for this event");
         }
 
-        event.getRegisteredUsers().add(user);
+        RegistrationEntity newRegistrationEntity = new RegistrationEntity(user, event);
+        registrationRepository.save(newRegistrationEntity);
+
+        event.getRegistrations().add(newRegistrationEntity);
+        user.getRegistrations().add(newRegistrationEntity);
+
         event.setOccupiedPlaces(event.getOccupiedPlaces() + 1);
-        user.getRegisteredEvents().add(event);
 
         log.info("User successfully registered for event {}", eventId);
     }
@@ -79,7 +86,7 @@ public class EventRegistrationService {
 
         UserEntity user = findByUserLogin();
 
-        if (!event.getRegisteredUsers().contains(user)) {
+        if (!registrationCheck(user, event)) {
             throw new IllegalStateException("User is not registered for this event");
         }
 
@@ -87,10 +94,18 @@ public class EventRegistrationService {
             throw new IllegalStateException("Cancellation is not allowed at this time");
         }
 
-        event.getRegisteredUsers().remove(user);
+        RegistrationEntity registration = registrationRepository.findRegistrationByUserAndEvent(user, event);
+
+        if (registration == null) {
+            throw new EntityNotFoundException("Registration not found");
+        }
+
+        event.getRegistrations().remove(registration);
+        user.getRegistrations().remove(registration);
+
         event.setOccupiedPlaces(event.getOccupiedPlaces() - 1);
 
-        user.getRegisteredEvents().remove(event);
+        registrationRepository.delete(registration);
 
         log.info("User successfully canceled registration for event {}", eventId);
     }
@@ -101,10 +116,24 @@ public class EventRegistrationService {
 
         UserEntity user = findByUserLogin();
 
-        log.info("successful receipt of user-created events");
-        return user.getRegisteredEvents().stream()
+        List<Event> events = user.getRegistrations().stream()
+                .map(RegistrationEntity::getEvent)
                 .map(eventMapper::toModel)
                 .toList();
+
+        log.info("Successful receipt of user-registered events. Found: {}", events.size());
+        return events;
+    }
+
+    private boolean isActiveEvent(EventEntity event) {
+        return !event.getStatus().equals(EventStatus.FINISHED) &&
+                !event.getStatus().equals(EventStatus.CANCELLED) &&
+                !event.getStatus().equals(EventStatus.ACTIVE);
+    }
+
+    private boolean registrationCheck(UserEntity user, EventEntity event) {
+        return user.getRegistrations().stream()
+                .anyMatch(registration -> registration.getEvent().equals(event));
     }
 
     private boolean isCancellationTooLate(EventEntity event) {
@@ -122,5 +151,4 @@ public class EventRegistrationService {
         return userRepository.getUserByLogin(receivedLogin)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with login: " + receivedLogin));
     }
-
 }

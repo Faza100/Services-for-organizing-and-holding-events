@@ -2,12 +2,15 @@ package com.example.my_project.dto.event;
 
 import java.time.LocalDateTime;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
 import com.example.my_project.enums.EventStatus;
 
 public class EventResponseDto {
 
     private Integer occupiedPlaces;
 
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private LocalDateTime date;
 
     private Integer duration;

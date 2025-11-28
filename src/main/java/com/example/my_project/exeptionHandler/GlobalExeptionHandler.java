@@ -8,6 +8,8 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.my_project.exeption.NoRolesException;
+
 import jakarta.persistence.EntityNotFoundException;
 
 @ControllerAdvice
@@ -47,7 +49,7 @@ public class GlobalExeptionHandler {
         }
 
         @ExceptionHandler(SecurityException.class)
-        public ResponseEntity<MessageError> handleIllegalArgumentException(
+        public ResponseEntity<MessageError> handleSecurityException(
                         SecurityException e) {
                 var message = new MessageError(
                                 "Security violation",
@@ -58,10 +60,21 @@ public class GlobalExeptionHandler {
         }
 
         @ExceptionHandler(IllegalStateException.class)
-        public ResponseEntity<MessageError> handleIllegalArgumentException(
+        public ResponseEntity<MessageError> handleIllegalStateException(
                         IllegalStateException e) {
                 var message = new MessageError(
                                 "Business rule violation",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.BAD_REQUEST).body(message);
+        }
+
+        @ExceptionHandler(NoRolesException.class)
+        public ResponseEntity<MessageError> handleNoRolesException(
+                        IllegalStateException e) {
+                var message = new MessageError(
+                                "No roles",
                                 e.getMessage(),
                                 LocalDateTime.now());
                 return ResponseEntity.status(

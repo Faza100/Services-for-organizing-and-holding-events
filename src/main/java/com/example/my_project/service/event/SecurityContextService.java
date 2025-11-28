@@ -6,6 +6,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import com.example.my_project.enums.UserRole;
+import com.example.my_project.exeption.NoRolesException;
 
 @Service
 public class SecurityContextService {
@@ -19,7 +20,14 @@ public class SecurityContextService {
         return authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .findFirst()
-                .map(UserRole::valueOf)
-                .orElseThrow(() -> new SecurityException("User has no roles"));
+                .map(this::convertToUserRole)
+                .orElseThrow(() -> new NoRolesException("User has no roles"));
+    }
+
+    private UserRole convertToUserRole(String authority) {
+        String roleName = authority.startsWith("ROLE_")
+                ? authority.substring(5)
+                : authority;
+        return UserRole.valueOf(roleName);
     }
 }

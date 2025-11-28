@@ -58,7 +58,7 @@ public class LocationController {
                 locationMapper.toModel(locationCreateRequestDto));
         LocationResponseDto response = locationMapper.toDto(locations);
         log.info("Location create successfully: {}", response);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(204).body(response);
     }
 
     @GetMapping("/{locationId}")

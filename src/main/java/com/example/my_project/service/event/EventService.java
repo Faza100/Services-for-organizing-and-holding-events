@@ -14,8 +14,10 @@ import com.example.my_project.entity.LocationEntity;
 import com.example.my_project.entity.UserEntity;
 import com.example.my_project.enums.EventStatus;
 import com.example.my_project.enums.UserRole;
+import com.example.my_project.exeption.NoRolesException;
 import com.example.my_project.mapper.EventMapper;
 import com.example.my_project.model.Event;
+import com.example.my_project.model.EventFilter;
 import com.example.my_project.repository.EventRepository;
 import com.example.my_project.repository.LocationRepository;
 import com.example.my_project.repository.UserRepository;
@@ -29,7 +31,6 @@ public class EventService {
     private final EventMapper eventMapper;
     private final UserRepository userRepository;
     private final LocationRepository locationRepository;
-    private final EventBusinessRulesService eventBusinessRulesService;
     private final SecurityContextService securityContextService;
     private static final Logger log = LoggerFactory.getLogger(EventService.class);
 
@@ -37,13 +38,11 @@ public class EventService {
             EventMapper eventMapper,
             UserRepository userRepository,
             LocationRepository locationRepository,
-            EventBusinessRulesService eventBusinessRulesService,
             SecurityContextService securityContextService) {
         this.eventRepository = eventRepository;
         this.eventMapper = eventMapper;
         this.userRepository = userRepository;
         this.locationRepository = locationRepository;
-        this.eventBusinessRulesService = eventBusinessRulesService;
         this.securityContextService = securityContextService;
     }
 
@@ -70,27 +69,33 @@ public class EventService {
     }
 
     @Transactional
-    public void deleteEventById(Long eventId) {
-        log.info("Deleting event with id: {}", eventId);
-        cancellationPermission(eventId);
-        log.info("Event cancelled");
+    public void cancelEventById(Long eventId) {
+        log.info("Cancelling event with id: {}", eventId);
+
+        EventEntity cancelledEvent = validateAndCancelEvent(eventId);
+        eventRepository.save(cancelledEvent);
+
+        log.info("Event successfully cancelled with id: {}", eventId);
     }
 
     @Transactional
     public Event updateEvent(Long eventId, Event event) {
-        log.info("Updating location with id: {}", eventId);
-
-        prepareEventEntity(event);
+        log.info("Updating event with id: {}", eventId);
 
         EventEntity eventEntity = findByEventId(eventId);
 
-        event.setDate(event.getDate());
-        event.setDuration(event.getDuration());
-        event.setCost(event.getCost());
-        event.setMaxPlaces(event.getMaxPlaces());
-        event.setLocationId(event.getLocationId());
-        event.setName(event.getName());
+        LocationEntity location = findByLocationId(event.getLocationId());
+        validateCapacity(location, event.getMaxPlaces());
+
+        eventEntity.setDate(event.getDate());
+        eventEntity.setDuration(event.getDuration());
+        eventEntity.setCost(event.getCost());
+        eventEntity.setMaxPlaces(event.getMaxPlaces());
+        eventEntity.setLocation(location);
+        eventEntity.setName(event.getName());
+
         log.info("Event updated successfully with id: {}", eventId);
+        eventRepository.save(eventEntity);
         return eventMapper.toModel(eventEntity);
     }
 
@@ -108,30 +113,64 @@ public class EventService {
                 .toList();
     }
 
+    @Transactional(readOnly = true)
+    public List<Event> searchEvents(EventFilter filter) {
+        log.info("Searching events with filter: {}", filter);
+
+        List<EventEntity> events = eventRepository.findEvents(
+                filter.getName(),
+                filter.getPlacesMin(), // ← теперь на 2-м месте
+                filter.getPlacesMax(), // ← теперь на 3-м месте
+                filter.getDateStartAfter(), // ← теперь на 4-м месте
+                filter.getDateStartBefore(), // ← теперь на 5-м месте
+                filter.getCostMin(), // ← теперь на 6-м месте
+                filter.getCostMax(), // ← теперь на 7-м месте
+                filter.getDurationMin(), // ← теперь на 8-м месте
+                filter.getDurationMax(), // ← теперь на 9-м месте
+                filter.getLocationId(), // ← теперь на 10-м месте
+                filter.getEventStatus());
+
+        log.info("Found {} events", events.size());
+        return events.stream()
+                .map(eventMapper::toModel)
+                .toList();
+    }
+
     private EventEntity prepareEventEntity(Event event) {
-        eventBusinessRulesService.enforceDurationConstraint(event.getDuration());
+        validateEventCreation(event);
+        UserEntity userEntity = getCurrentUser();
+        LocationEntity locationEntity = getValidatedLocation(event.getLocationId(), event);
 
+        return eventMapper.toEntity(event, locationEntity, userEntity);
+    }
+
+    private void validateEventCreation(Event event) {
+        if (event.getDuration() < 1) {
+            throw new IllegalArgumentException("Event duration must be at least 1 minute");
+        }
+    }
+
+    private UserEntity getCurrentUser() {
         String login = securityContextService.getCurrentUserLogin();
+        return findByUserLogin(login);
+    }
 
-        UserEntity userEntity = findByUserLogin(login);
+    private LocationEntity getValidatedLocation(Long locationId, Event event) {
+        LocationEntity locationEntity = locationRepository.findById(locationId)
+                .orElseThrow(() -> new EntityNotFoundException("Location not found with id: " + locationId));
 
-        event.setOwnerId(userEntity.getId());
-
-        LocationEntity locationEntity = locationRepository.findById(event.getLocationId())
-                .orElseThrow(() -> new EntityNotFoundException("Location not found with id: "
-                        + event.getLocationId()));
-
-        eventBusinessRulesService.checkCapacityPolicy(locationEntity, event.getMaxPlaces());
-
+        validateCapacity(locationEntity, event.getMaxPlaces());
         updateEventsStatusForLocation(locationEntity);
 
-        if (eventBusinessRulesService.isLocationAvailable(locationEntity.getEvents(), event.getDate(),
-                event.getDuration())) {
-            throw new IllegalArgumentException("Location is already occupied at this tim");
-        }
+        return locationEntity;
+    }
 
-        return eventMapper.toEntity(event,
-                locationEntity, userEntity);
+    private void validateCapacity(LocationEntity location, Integer eventMaxPlaces) {
+        if (location.getCapacity() < eventMaxPlaces) {
+            throw new IllegalArgumentException(
+                    String.format("Event capacity %d exceeds location capacity %d",
+                            eventMaxPlaces, location.getCapacity()));
+        }
     }
 
     private void updateEventsStatusForLocation(LocationEntity location) {
@@ -152,8 +191,19 @@ public class EventService {
                 .orElseThrow(() -> new EntityNotFoundException("User not found with login: " + login));
     }
 
-    private void cancellationPermission(Long eventId) {
+    private LocationEntity findByLocationId(Long locationId) {
+        return locationRepository.findById(locationId)
+                .orElseThrow(() -> new EntityNotFoundException("Location not found with id: "
+                        + locationId));
+
+    }
+
+    private EventEntity validateAndCancelEvent(Long eventId) {
+
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new NoRolesException("User not authenticated");
+        }
 
         UserRole role = securityContextService.getCurrentUserRole();
 
@@ -164,7 +214,7 @@ public class EventService {
         if (role.equals(UserRole.ADMIN)) {
             eventEntity.setStatus(EventStatus.CANCELLED);
             log.info("Event cancelled by ADMIN with id: {}", eventId);
-            return;
+            return eventEntity;
         }
 
         if (role.equals(UserRole.USER)) {
@@ -173,10 +223,11 @@ public class EventService {
             if (eventEntity.getOwner().getId().equals(userEntity.getId())) {
                 eventEntity.setStatus(EventStatus.CANCELLED);
                 log.info("Event cancelled by owner with id: {}", eventId);
+                return eventEntity;
             } else {
                 throw new SecurityException("You can only cancel your own events");
             }
         }
+        throw new SecurityException("Insufficient permissions to cancel event");
     }
-
 }

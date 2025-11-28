@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -17,11 +18,15 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.my_project.dto.event.EventCreateAndUpdateResponseDto;
 import com.example.my_project.dto.event.EventCreateRequstDto;
+import com.example.my_project.dto.event.EventFilterDto;
 import com.example.my_project.dto.event.EventResponseDto;
 import com.example.my_project.dto.event.EventUpdateRequestDto;
+import com.example.my_project.mapper.EventFilterMapper;
 import com.example.my_project.mapper.EventMapper;
 import com.example.my_project.model.Event;
-import com.example.my_project.service.event.EventRegistrationService;
+import com.example.my_project.model.EventFilter;
+import com.example.my_project.model.Registration;
+import com.example.my_project.service.event.RegistrationService;
 import com.example.my_project.service.event.EventService;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -32,18 +37,21 @@ import jakarta.validation.Valid;
 @SecurityRequirement(name = "JWT")
 public class EventController {
 
-    private EventService eventService;
-    private EventMapper eventMapper;
-    private EventRegistrationService eventRegistrationService;
+    private final EventService eventService;
+    private final EventMapper eventMapper;
+    private final RegistrationService eventRegistrationService;
+    private final EventFilterMapper eventFilterMapper;
     private static final Logger log = LoggerFactory.getLogger(EventController.class);
 
     public EventController(
             EventService eventService,
             EventMapper eventMapper,
-            EventRegistrationService eventRegistrationService) {
+            RegistrationService eventRegistrationService,
+            EventFilterMapper eventFilterMapper) {
         this.eventService = eventService;
         this.eventMapper = eventMapper;
         this.eventRegistrationService = eventRegistrationService;
+        this.eventFilterMapper = eventFilterMapper;
     }
 
     @PostMapping
@@ -54,7 +62,7 @@ public class EventController {
                 eventMapper.toModel(eventCreateRequestDto));
         EventCreateAndUpdateResponseDto response = eventMapper.toDtoCreateAndUpdate(event);
         log.info("Event create successfully: {}", response);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.status(204).body(response);
     }
 
     @GetMapping("/{eventId}")
@@ -67,16 +75,16 @@ public class EventController {
     }
 
     @DeleteMapping("/{eventId}")
-    public ResponseEntity<Void> deleteEventById(
+    public ResponseEntity<Void> cancelEventById(
             @PathVariable Long eventId) {
         log.info("Request to delete event by id: {}", eventId);
-        eventService.deleteEventById(eventId);
+        eventService.cancelEventById(eventId);
         log.info("Event delete by id successfully: {}", eventId);
         return ResponseEntity.status(204).build();
     }
 
     @PutMapping("/{eventId}")
-    public ResponseEntity<EventCreateAndUpdateResponseDto> updateLocation(
+    public ResponseEntity<EventCreateAndUpdateResponseDto> updateEvent(
             @PathVariable Long eventId,
             @RequestBody @Valid EventUpdateRequestDto eventUpdateRequestDto) {
         log.info("Received update event request for id {}: {}", eventId, eventUpdateRequestDto);
@@ -119,11 +127,22 @@ public class EventController {
     @GetMapping("/registrations/my")
     public ResponseEntity<List<EventResponseDto>> getMyRegistration() {
         log.info("Request to get user registrations");
-        List<Event> events = eventRegistrationService.getMyRegistration();
-        List<EventResponseDto> eventsDtos = events.stream()
+        List<Event> registration = eventRegistrationService.getMyRegistration();
+        List<EventResponseDto> eventsDtos = registration.stream()
                 .map(eventMapper::toDto)
                 .toList();
         log.info("User registrations received successfully, count: {}", eventsDtos.size());
+        return ResponseEntity.ok(eventsDtos);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<EventResponseDto>> searchEvents(@ModelAttribute EventFilterDto filter) {
+        log.info("Request to search all events by filter");
+        List<Event> events = eventService.searchEvents(eventFilterMapper.toModel(filter));
+        List<EventResponseDto> eventsDtos = events.stream()
+                .map(eventMapper::toDto)
+                .toList();
+        log.info("USearch all events by filter received successfully, count: {}", eventsDtos.size());
         return ResponseEntity.ok(eventsDtos);
     }
 }
