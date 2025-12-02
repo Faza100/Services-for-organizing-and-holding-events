@@ -1,7 +1,11 @@
 package com.example.my_project.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import com.example.my_project.enums.UserRole;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -9,6 +13,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -31,6 +36,12 @@ public class UserEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
+
+    @OneToMany(mappedBy = "owner", cascade = CascadeType.ALL)
+    private List<EventEntity> createdEvents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<RegistrationEntity> registrations = new ArrayList<>();
 
     public UserEntity(
             String login,
@@ -84,6 +95,22 @@ public class UserEntity {
 
     public void setRole(UserRole role) {
         this.role = role;
+    }
+
+    public List<EventEntity> getCreatedEvents() {
+        return createdEvents;
+    }
+
+    public void setCreatedEvents(List<EventEntity> createdEvents) {
+        this.createdEvents = createdEvents;
+    }
+
+    public List<RegistrationEntity> getRegistrations() {
+        return registrations;
+    }
+
+    public void setRegistrations(List<RegistrationEntity> registrations) {
+        this.registrations = registrations;
     }
 
 }

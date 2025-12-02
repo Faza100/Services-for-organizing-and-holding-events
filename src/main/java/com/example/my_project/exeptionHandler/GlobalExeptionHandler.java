@@ -8,13 +8,14 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
+import com.example.my_project.exeption.NoRolesException;
+
 import jakarta.persistence.EntityNotFoundException;
 
 @ControllerAdvice
 public class GlobalExeptionHandler {
 
         @ExceptionHandler(MethodArgumentNotValidException.class)
-
         public ResponseEntity<MessageError> handlerValidationExeption(
                         MethodArgumentNotValidException e) {
                 var message = new MessageError(
@@ -45,6 +46,39 @@ public class GlobalExeptionHandler {
                                 LocalDateTime.now());
                 return ResponseEntity.status(
                                 HttpStatus.NOT_FOUND).body(message);
+        }
+
+        @ExceptionHandler(SecurityException.class)
+        public ResponseEntity<MessageError> handleSecurityException(
+                        SecurityException e) {
+                var message = new MessageError(
+                                "Security violation",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.FORBIDDEN).body(message);
+        }
+
+        @ExceptionHandler(IllegalStateException.class)
+        public ResponseEntity<MessageError> handleIllegalStateException(
+                        IllegalStateException e) {
+                var message = new MessageError(
+                                "Business rule violation",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.BAD_REQUEST).body(message);
+        }
+
+        @ExceptionHandler(NoRolesException.class)
+        public ResponseEntity<MessageError> handleNoRolesException(
+                        IllegalStateException e) {
+                var message = new MessageError(
+                                "No roles",
+                                e.getMessage(),
+                                LocalDateTime.now());
+                return ResponseEntity.status(
+                                HttpStatus.BAD_REQUEST).body(message);
         }
 
         @ExceptionHandler(Exception.class)

@@ -1,4 +1,4 @@
-package com.example.my_project.service;
+package com.example.my_project.service.auth;
 
 import java.io.IOException;
 import java.util.List;

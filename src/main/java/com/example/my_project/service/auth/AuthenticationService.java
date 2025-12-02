@@ -1,10 +1,11 @@
-package com.example.my_project.service;
+package com.example.my_project.service.auth;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.example.my_project.dto.user.LoginRequestDto;
 import com.example.my_project.model.User;
+import com.example.my_project.service.user.UserService;
 
 import jakarta.transaction.Transactional;
 

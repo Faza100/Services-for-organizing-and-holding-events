@@ -11,7 +11,7 @@ public class LocationUpdateRequestDto {
 
     private String address;
 
-    @Min(1)
+    @Min(2)
     @Max(10000)
     private Integer capacity;
 
