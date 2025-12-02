@@ -61,6 +61,9 @@ public class EventFilterDto {
         this.durationMin = durationMin;
     }
 
+    public EventFilterDto() {
+    }
+
     public Integer getDurationMax() {
         return durationMax;
     }

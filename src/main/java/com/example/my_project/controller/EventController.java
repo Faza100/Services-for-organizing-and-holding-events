@@ -136,7 +136,7 @@ public class EventController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<EventResponseDto>> searchEvents(@ModelAttribute EventFilterDto filter) {
+    public ResponseEntity<List<EventResponseDto>> searchEvents(@ModelAttribute @Valid EventFilterDto filter) {
         log.info("Request to search all events by filter");
         List<Event> events = eventService.searchEvents(eventFilterMapper.toModel(filter));
         List<EventResponseDto> eventsDtos = events.stream()

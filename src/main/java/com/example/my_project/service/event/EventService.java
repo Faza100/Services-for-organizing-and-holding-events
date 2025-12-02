@@ -119,15 +119,15 @@ public class EventService {
 
         List<EventEntity> events = eventRepository.findEvents(
                 filter.getName(),
-                filter.getPlacesMin(), // ← теперь на 2-м месте
-                filter.getPlacesMax(), // ← теперь на 3-м месте
-                filter.getDateStartAfter(), // ← теперь на 4-м месте
-                filter.getDateStartBefore(), // ← теперь на 5-м месте
-                filter.getCostMin(), // ← теперь на 6-м месте
-                filter.getCostMax(), // ← теперь на 7-м месте
-                filter.getDurationMin(), // ← теперь на 8-м месте
-                filter.getDurationMax(), // ← теперь на 9-м месте
-                filter.getLocationId(), // ← теперь на 10-м месте
+                filter.getPlacesMin(),
+                filter.getPlacesMax(),
+                filter.getDateStartAfter(),
+                filter.getDateStartBefore(),
+                filter.getCostMin(),
+                filter.getCostMax(),
+                filter.getDurationMin(),
+                filter.getDurationMax(),
+                filter.getLocationId(),
                 filter.getEventStatus());
 
         log.info("Found {} events", events.size());
